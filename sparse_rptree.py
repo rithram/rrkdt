@@ -109,6 +109,7 @@ def build_sparse_rptree(S, hparams, log=False) :
         assert len(level_rnd_vals) == 0
         return {
             'tree' : root,
+            'pad' : np.zeros(new_ncols - ncols),
             'diag_sign' : diag_sign,
             'ncols' : ncols,
             'new_ncols' : new_ncols,
@@ -118,6 +119,7 @@ def build_sparse_rptree(S, hparams, log=False) :
     else :
         return {
             'tree' : root,
+            'pad' : np.zeros(new_ncols - ncols),
             'diag_sign' : diag_sign,
             'ncols' : ncols,
             'new_ncols' : new_ncols,
@@ -169,9 +171,10 @@ def get_densified_query(tree, q) :
     ds_q = np.multiply(q, tree['diag_sign'])
 
     # [ Dx 0 ... 0 ]
-    padded_q = np.pad(
-        ds_q, (0, new_ncols - ncols), 'constant', constant_values=0
-    ) if new_ncols > ncols else ds_q
+    #padded_q = np.pad(
+    #    ds_q, (0, new_ncols - ncols), 'constant', constant_values=0
+    #) if new_ncols > ncols else ds_q
+    padded_q = np.concatenate([ ds_q, tree['pad'] ])
 
     # H [ Dx 0 ... 0 ]
     fht(padded_q)
