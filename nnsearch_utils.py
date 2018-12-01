@@ -12,11 +12,13 @@ from sklearn.metrics import auc
 def recall(true_set, candidate_set) :
     nfound = true_set & candidate_set
     return float(len(nfound)) / len(true_set)
+# -- end function
 
 # Basic function to evaluate the precision of the search
 def precision(true_set, candidate_set) :
     nfound = true_set & candidate_set
     return float(len(nfound)) / len(candidate_set)
+# -- end function
 
 # Generate a precision-recall using the
 #  results from the search with RP-tree forest
@@ -89,6 +91,7 @@ def generate_results(true_list, candidate_lists, query_time, indexing_time=None)
     result_df = pd.DataFrame.from_dict(result_dict)
 
     return result_df
+# -- end function
 
 def ComputeAUPRC(results) :
     precision = results['precision'].values
@@ -99,7 +102,7 @@ def ComputeAUPRC(results) :
     y_auc = np.concatenate([ [ precision[0] ], precision, [ 0.0 ] ])
 
     return auc(x=x_auc, y=y_auc)
-
+# -- end function
 
 # Generate the true answers using sklearn's NNS
 def compute_true_nn(S, Q, k) :
@@ -107,7 +110,7 @@ def compute_true_nn(S, Q, k) :
     nns.fit(S)
     true_list = nns.kneighbors(Q, return_distance=False)
     return true_list
-
+# -- end function
 
 def evaluate_setting(
         S,
@@ -195,4 +198,4 @@ def evaluate_setting(
         auprc_list.append(auprc)
 
     return true_list, result_dfs, auprc_list
-
+# -- end function

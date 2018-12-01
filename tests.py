@@ -10,3 +10,4 @@ def test_tree(S, indexer, locater, hparams) :
                 missed_idxs.append(idx)
         print('Missed %i/%i points' % (len(missed_idxs), len(S)))
         print(missed_idxs)
+# -- end function

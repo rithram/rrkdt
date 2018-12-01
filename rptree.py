@@ -70,11 +70,10 @@ def split_node(
     nodes_list.append((rc, rc.level, ridx))
 
     return node_idx_offset + 2
-
+# -- end function
 
 def build_rptree(S, hparams, log=False) :
     logr = lambda message : rplog(message, log)
-
 
     nrows, ncols = S.shape
     leaf_size = hparams.leaf_size
@@ -117,6 +116,7 @@ def build_rptree(S, hparams, log=False) :
         )
 
     return { 'tree' : root, 'projs' : np.transpose(np.array(hp_list)) }
+# -- end function
 
 def traverse_rptree(tree, log=False) :
     logr = lambda message : rplog(message, log)
@@ -139,6 +139,7 @@ def traverse_rptree(tree, log=False) :
             '%sL %i: leaf?%i, id:%i --> %s' 
             % (indent, l, n.leaf, n.idx, ms)
         )
+# -- end function
 
 def search_rptree(tree, q) :
     n = tree['tree']
@@ -149,3 +150,4 @@ def search_rptree(tree, q) :
         else :
             n = n.rchild
     return n.pidxs
+# -- end function

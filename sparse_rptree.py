@@ -126,6 +126,7 @@ def build_sparse_rptree(S, hparams, log=False) :
             'level_col_idx' : level_col_idx,
             'level_rnd_vals' : level_rnd_vals
         }
+# -- end function
 
 def traverse_sparse_rptree(tree, log=False) :
     logr = lambda message : rplog(message, log)
@@ -160,8 +161,7 @@ def traverse_sparse_rptree(tree, log=False) :
             '%sL %i: leaf?%i, id:%i --> %s' 
             % (indent, l, n.leaf, n.idx, ms)
         )
-
-
+# -- end function
 
 def get_densified_query(tree, q) :
     ncols = tree['ncols']
@@ -183,6 +183,7 @@ def get_densified_query(tree, q) :
     densified_q = padded_q / np.sqrt(new_ncols)
 
     return densified_q
+# -- end function
 
 def search_tree(root, qprojs) :
     n = root
@@ -192,7 +193,8 @@ def search_tree(root, qprojs) :
         else :
             n = n.rchild
     return n.pidxs
-    
+# -- end function
+
 def search_signed_sparse_rptree(tree, q) :
     densified_q = get_densified_query(tree, q)
     qprojs = [
@@ -200,6 +202,7 @@ def search_signed_sparse_rptree(tree, q) :
         for pidxs, nidxs in tree['level_col_idx']
     ]
     return search_tree(tree['tree'], qprojs)
+# -- end function
 
 def search_normal_sparse_rptree(tree, q) :
     densified_q = get_densified_query(tree, q)
@@ -208,9 +211,11 @@ def search_normal_sparse_rptree(tree, q) :
         for cidxs, hp in zip(tree['level_col_idx'], tree['level_rnd_vals'])
     ]
     return search_tree(tree['tree'], qprojs)
+# -- end function
 
 def search_sparse_rptree(tree, q) :
     if 'level_rnd_vals' in tree :
         return search_normal_sparse_rptree(tree, q)
     else :
         return search_signed_sparse_rptree(tree, q)
+# -- end function
