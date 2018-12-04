@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import argparse
+import numpy as np
 import pandas as pd
 import sys
 
@@ -46,6 +47,13 @@ def setup_cmd_args() :
   parser.add_argument(
       '-T', '--num_trees', help='The number of trees', type=int
   )
+  parser.add_argument(
+      '-R',
+      '--n_reps',
+      help='The number of times to evaluate a setting.',
+      type=int,
+      default=1
+  )
 
   args = parser.parse_args()
   return args
@@ -71,6 +79,7 @@ def main() :
     assert cmd_args.n_neighbors > 0
     assert cmd_args.leaf_size > 0
     assert cmd_args.num_trees > 0
+    assert cmd_args.n_reps > 0
 
     assert cmd_args.results_file is not '', (
         'Please specify a results file via \'-r\' '
@@ -109,6 +118,7 @@ def main() :
     all_method_auprc = {}
     all_method_auprc['method'] = []
     all_method_auprc['auprc'] = []
+    all_method_auprc['auprc_std'] = []
     for method in all_methods :
         print('Processing %s ...' % method['name'])
         _, result_dfs, auprc_list = evaluate_setting(
@@ -117,14 +127,28 @@ def main() :
             k=cmd_args.n_neighbors,
             indexer=method['indexer'],
             locater=method['locater'],
-            hps=[ method['hparams'] ],
+            hps=[ method['hparams'] ] * cmd_args.n_reps,
             true_list=true_neighbors
         )
-        print('AUPRC for %s: %g' % (method['name'], auprc_list[0]))
-        result_dfs[0]['method'] = method['name']
-        all_method_results.append(result_dfs[0])
+        # Aggregating the PR-curves for all restarts
+        assert len(result_dfs) == cmd_args.n_reps
+        agg_df = result_dfs[0]
+        # adding all the dataframes
+        for i in range(cmd_args.n_reps - 1) :
+            agg_df = agg_df.add(result_dfs[i + 1])
+        # dividing all elements by number of restarts
+        if cmd_args.n_reps > 1 :
+            agg_df = agg_df.div(float(cmd_args.n_reps))
+
+        agg_df['method'] = method['name']
+        all_method_results.append(agg_df)
+        
+        # Computing the average AUPRC
+        print('AUPRC for %s: %g' % (method['name'], np.mean(auprc_list)))
         all_method_auprc['method'].append(method['name'])
-        all_method_auprc['auprc'].append(auprc_list[0])
+        all_method_auprc['auprc'].append(np.mean(auprc_list))
+        auprc_std = np.std(auprc_list) if len(auprc_list) > 1 else 0.0
+        all_method_auprc['auprc_std'].append(auprc_std)
         
     # 3. concatenate all results
     all_results = pd.concat(all_method_results)

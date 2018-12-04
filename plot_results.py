@@ -30,10 +30,14 @@ def generate_figures(all_results, all_auprcs, figfile) :
     #   b. Plot AUPRC for each method (bar plots)
     plt.subplot(312)
     color_list = [ color_dict[m] for m in all_auprcs['method'] ]
+    yerrs_list = all_auprcs['auprc_std'] if 'auprc_std' in all_auprcs else None
     plt.bar(
         all_auprcs['method'],
         all_auprcs['auprc'],
-        color=color_list
+        color=color_list,
+        yerr=yerrs_list,
+        ecolor='gray',
+        capsize=5
     )
     plt.xticks(rotation=20)
     plt.xlabel('Method')

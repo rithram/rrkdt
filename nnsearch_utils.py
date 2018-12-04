@@ -153,7 +153,8 @@ def evaluate_setting(
     result_dfs = []
     auprc_list = []
     
-    for hp in hps :
+    for hidx, hp in enumerate(hps) :
+        print('Processing HP %i/%i ...' % (hidx + 1, len(hps)))
         print(
             'Pre-processing set into %i trees with leaf-size %i '
             'using indexer \'%s\' ...'
