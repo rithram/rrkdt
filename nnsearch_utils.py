@@ -78,11 +78,13 @@ def generate_results(true_list, candidate_lists, query_time, indexing_time=None)
     avg_recall = recall_sum / nqueries
     avg_precision = precision_sum / nqueries
     cum_query_time = np.cumsum(np.array(query_time))
+    nqueries_per_second = float(nqueries) / cum_query_time
 
     result_dict = {
         'recall' : avg_recall.tolist(),
         'precision' : avg_precision.tolist(),
-        'query_time' : cum_query_time.tolist()
+        'query_time' : cum_query_time.tolist(),
+        'nqueries_per_sec' : nqueries_per_second.tolist()
     }
 
     if indexing_time is not None :
