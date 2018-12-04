@@ -2,11 +2,11 @@ import timeit
 
 import pandas as pd
 import numpy as np
+
+from tqdm import tqdm
+
 from sklearn.neighbors import NearestNeighbors as NN
 from sklearn.metrics import auc
-
-#import matplotlib.pyplot as plt
-#import matplotlib.lines as mlines
 
 # Basic function to evaluate the recall of the search
 def recall(true_set, candidate_set) :
@@ -163,14 +163,11 @@ def evaluate_setting(
               % (len(Q), locater.__name__)
         )
 
-        #trees = [ indexer(S, hp) for i in range(hp.ntrees) ]
- 
-
         query_time = []
         indexing_time = []
         candidate_lists = [ [] for i in range(len(Q)) ]
 
-        for i in range(hp.ntrees) :
+        for i in tqdm(range(hp.ntrees), desc='Num. trees') :
 
             # Build the tree
             start = timeit.default_timer()
