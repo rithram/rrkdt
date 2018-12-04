@@ -13,7 +13,7 @@ def preprocess_csv(
     filename, split_frac=0.1, k=10, header=None, cols2drop=None
 ) :
     # Read in data
-    data = pd.read_csv(filename, header)
+    data = pd.read_csv(filename, header, engine='python')
     nrows, ncols = data.shape
     print('Data (%i x %i)' % (nrows, ncols))
     if cols2drop is not None :
