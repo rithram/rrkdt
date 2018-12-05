@@ -30,7 +30,7 @@ def preprocess_csv(
     print('Computing true nearest-neighbors ...')
     true_nns = compute_true_nn(R.values, Q.values, k=k)
 
-    return R.values, Q.values, true_nns
+    return R.values.astype(float), Q.values.astype(float), true_nns
 # -- end function
 
 # Function to read in a hdf5 file, pull out the references
