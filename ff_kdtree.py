@@ -158,7 +158,6 @@ def search_ff_kdtree(tree, q) :
     n = tree['tree']
     qprojs = HGPHD_x(tree, q)
     new_ncols = tree['new_ncols']
-    assert len(qprojs) == new_ncols
     while not n.leaf :
         if qprojs[n.level % new_ncols] < n.val :
             n = n.lchild
