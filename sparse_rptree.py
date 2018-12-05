@@ -27,17 +27,15 @@ def build_sparse_rptree(S, hparams, log=False) :
     new_ncols = ncols if int(lncols) == lncols else np.power(2, int(lncols) + 1)
     logr('Padding %i features to %i with 0' % (ncols, new_ncols))
 
-    padded_D_S = np.pad(
-        D_S, ((0, 0), (0, new_ncols - ncols)), 'constant', constant_values=0
-    ) if new_ncols > ncols else D_S
-
-    denS = None
+    pad_vec = np.zeros(new_ncols - ncols)
+    dense_x_list = []
     for i in range(nrows) :
-        x = np.array(padded_D_S[i])
+        x = np.concatenate([ D_S[i], pad_vec ])
         fht(x)
-        denS = x if denS is None else np.vstack((denS, x))
+        dense_x_list.append(x)
 
-    denS /= np.sqrt(new_ncols)
+    denS = np.array(dense_x_list)
+    denS /= np.sqrt(float(new_ncols))
     
     logr('Densified data matrix has shape %s previously %s'
          % (repr(denS.shape), repr(S.shape))
@@ -84,8 +82,9 @@ def build_sparse_rptree(S, hparams, log=False) :
                         negs.append(cidx)
                     else :
                         poss.append(cidx)
-                all_projs_level = np.sum(
-                    denS[:, poss], axis=1) - np.sum(denS[:, negs], axis=1)
+                all_projs_level = (
+                    np.sum(denS[:, poss], axis=1) - np.sum(denS[:, negs], axis=1)
+                )
                 level_col_idx.append((poss, negs))
             else :
                 hp = np.random.normal(size=len(cidxs))
@@ -105,27 +104,22 @@ def build_sparse_rptree(S, hparams, log=False) :
             logr
         )
 
+    common_dict = {
+        'tree' : root,
+        'pad' : pad_vec,
+        'diag_sign' : diag_sign,
+        'ncols' : ncols,
+        'new_ncols' : new_ncols,
+        'sq_new_ncols' : np.sqrt(float(new_ncols)),
+        'level_col_idx' : level_col_idx
+    }
+        
     if hparams.use_sign :
         assert len(level_rnd_vals) == 0
-        return {
-            'tree' : root,
-            'pad' : np.zeros(new_ncols - ncols),
-            'diag_sign' : diag_sign,
-            'ncols' : ncols,
-            'new_ncols' : new_ncols,
-            'level_col_idx' : level_col_idx
-        }
-
     else :
-        return {
-            'tree' : root,
-            'pad' : np.zeros(new_ncols - ncols),
-            'diag_sign' : diag_sign,
-            'ncols' : ncols,
-            'new_ncols' : new_ncols,
-            'level_col_idx' : level_col_idx,
-            'level_rnd_vals' : level_rnd_vals
-        }
+        common_dict['level_rnd_vals'] = level_rnd_vals
+
+    return common_dict
 # -- end function
 
 def traverse_sparse_rptree(tree, log=False) :
@@ -171,16 +165,14 @@ def get_densified_query(tree, q) :
     ds_q = np.multiply(q, tree['diag_sign'])
 
     # [ Dx 0 ... 0 ]
-    #padded_q = np.pad(
-    #    ds_q, (0, new_ncols - ncols), 'constant', constant_values=0
-    #) if new_ncols > ncols else ds_q
-    padded_q = np.concatenate([ ds_q, tree['pad'] ])
+    densified_q = np.concatenate([ ds_q, tree['pad'] ])
 
     # H [ Dx 0 ... 0 ]
-    fht(padded_q)
+    fht(densified_q)
 
     # (d^{-1/2}) * H [ Dx 0 ... 0 ]
-    densified_q = padded_q / np.sqrt(new_ncols)
+    densified_q /= tree['sq_new_ncols']
+
 
     return densified_q
 # -- end function
