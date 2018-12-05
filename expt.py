@@ -1,5 +1,9 @@
 #! /usr/bin/env python
 
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+
 import argparse
 import numpy as np
 import pandas as pd
@@ -171,7 +175,6 @@ def main() :
 
 
 if __name__ == '__main__' :
-#  try :
     status = main()
     sys.exit(status)
 #  except Exception as e : 
