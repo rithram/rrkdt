@@ -179,7 +179,6 @@ def traverse_rconv_kdtree(tree, log=False) :
 def search_rconv_kdtree(tree, q) :
     n = tree['tree']
     qprojs = convolve(q, tree['conv_vec'], 'valid', method='auto')
-    assert len(qprojs) == tree['ncols']
     ncols = tree['ncols']
     while not n.leaf :
         if qprojs[n.level % ncols] < n.val :
