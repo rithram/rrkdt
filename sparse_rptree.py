@@ -7,6 +7,13 @@ from rptree import rplog
 from rptree import Node
 from rptree import split_node
 
+def compute_proj(q, col_idxs) :
+    projs = [ 0.0, 0.0 ]
+    for cidx, pidx in col_idxs :
+        projs[pidx] += q[cidx]
+    return (projs[1] - projs[0])
+# -- end function
+
 def build_sparse_rptree(S, hparams, log=False) :
     logr = lambda message : rplog(message, log)
     
@@ -76,6 +83,7 @@ def build_sparse_rptree(S, hparams, log=False) :
 
             if hparams.use_sign :
                 sign_vals = np.random.binomial(n=1, p=0.5, size=len(cidxs))
+                all_idxs = zip(cidxs, sign_vals.astype(int))
                 poss, negs = [], []
                 for sv, cidx in zip(sign_vals, cidxs) :
                     if sv == 0 :
@@ -85,13 +93,13 @@ def build_sparse_rptree(S, hparams, log=False) :
                 all_projs_level = (
                     np.sum(denS[:, poss], axis=1) - np.sum(denS[:, negs], axis=1)
                 )
-                level_col_idx.append((poss, negs))
+                level_col_idx.append(all_idxs)
             else :
                 hp = np.random.normal(size=len(cidxs))
                 all_projs_level = np.dot(denS[:, cidxs], hp)
                 level_rnd_vals.append(hp)
                 level_col_idx.append(cidxs)
-            
+
         nidx = split_node(
             hparams.leaf_size,
             all_projs_level,
@@ -113,7 +121,7 @@ def build_sparse_rptree(S, hparams, log=False) :
         'sq_new_ncols' : np.sqrt(float(new_ncols)),
         'level_col_idx' : level_col_idx
     }
-        
+
     if hparams.use_sign :
         assert len(level_rnd_vals) == 0
     else :
@@ -190,8 +198,8 @@ def search_tree(root, qprojs) :
 def search_signed_sparse_rptree(tree, q) :
     densified_q = get_densified_query(tree, q)
     qprojs = [
-        np.sum(densified_q[pidxs]) - np.sum(densified_q[nidxs])
-        for pidxs, nidxs in tree['level_col_idx']
+        compute_proj(densified_q, col_idxs)
+        for col_idxs in tree['level_col_idx']
     ]
     return search_tree(tree['tree'], qprojs)
 # -- end function
