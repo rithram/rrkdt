@@ -2,6 +2,7 @@ from rptree import build_rptree, search_rptree
 from rnd_rot_kdtree import build_rr_kdtree, search_rr_kdtree
 from rnd_rot_kdtree import build_rconv_kdtree, search_rconv_kdtree
 from sparse_rptree import build_sparse_rptree, search_sparse_rptree
+from ff_kdtree import build_ff_kdtree, search_ff_kdtree
 
 class HParams :
     leaf_size = None
@@ -65,6 +66,18 @@ def get_methods_for_expt(leaf_size, ntrees) :
         'locater' : search_rconv_kdtree
     }
     methods.append(rckdt_method)
+
+    # FastFood data + k-d tree
+    ffkd_hparam = HParams()
+    ffkd_hparam.leaf_size = leaf_size
+    ffkd_hparam.ntrees = ntrees
+    ffkdt_method = {
+        'name' : 'FF:KDTree',
+        'hparams' : ffkd_hparam,
+        'indexer' : build_ff_kdtree,
+        'locater' : search_ff_kdtree
+    }
+    methods.append(ffkdt_method)
 
     return methods
 # -- end function
