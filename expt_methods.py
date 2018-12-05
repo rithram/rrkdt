@@ -24,7 +24,7 @@ def get_methods_for_expt(leaf_size, ntrees) :
     methods.append(rpt_method)
 
     # sparse rptree with {Gaussian, Radamacher} distribution and p={1/3, 2/3}
-    probs = [ (1.0/3.0, '1/3') , (2.0/3.0, '2/3') ]
+    probs = [ (0.1, '1/10') , (1.0/3.0, '1/3') ]
     use_signs = [ (False, 'Ga'), (True, 'Ra') ]
 
     for u, s1 in use_signs :
