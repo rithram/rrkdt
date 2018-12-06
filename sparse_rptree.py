@@ -7,6 +7,18 @@ from rptree import rplog
 from rptree import Node
 from rptree import split_node
 
+def HD_x(D, pad, sqrt_new_ncols, x) :
+    # [ Dx 0 ... 0 ]
+    HDx = np.concatenate([ D * x, pad ])
+    # H [ Dx 0 ... 0 ]
+    fht(HDx)
+    # (d^{-1/2}) * H [ Dx 0 ... 0 ]
+    HDx /= sqrt_new_ncols
+
+    return HDx
+# -- end function
+
+
 def compute_proj(q, col_idxs) :
     projs = [ 0.0, 0.0 ]
     for cidx, pidx in col_idxs :
@@ -26,26 +38,23 @@ def build_sparse_rptree(S, hparams, log=False) :
     )
 
     # Generate a random diagonal sign matrix
-    diag_sign = np.random.binomial(n=1, p=0.5, size=ncols) * 2 - 1
-    D_S = np.multiply(S, diag_sign)
+    D = np.random.binomial(n=1, p=0.5, size=ncols) * 2 - 1
 
     # Pad each point to have some power of 2 size
     lncols = np.log2(ncols)
     new_ncols = ncols if int(lncols) == lncols else np.power(2, int(lncols) + 1)
     logr('Padding %i features to %i with 0' % (ncols, new_ncols))
-
     pad_vec = np.zeros(new_ncols - ncols)
-    dense_x_list = []
-    for i in range(nrows) :
-        x = np.concatenate([ D_S[i], pad_vec ])
-        fht(x)
-        dense_x_list.append(x)
 
-    denS = np.array(dense_x_list)
-    denS /= np.sqrt(float(new_ncols))
+    HD_S = np.array([
+        HD_x(D, pad_vec, np.sqrt(new_ncols), p) for p in S
+    ])
     
+    a, b = HD_S.shape
+    assert a == nrows and b == new_ncols
+
     logr('Densified data matrix has shape %s previously %s'
-         % (repr(denS.shape), repr(S.shape))
+         % (repr(HD_S.shape), repr(S.shape))
     )
 
     nodes = deque()
@@ -91,12 +100,12 @@ def build_sparse_rptree(S, hparams, log=False) :
                     else :
                         poss.append(cidx)
                 all_projs_level = (
-                    np.sum(denS[:, poss], axis=1) - np.sum(denS[:, negs], axis=1)
+                    np.sum(HD_S[:, poss], axis=1) - np.sum(HD_S[:, negs], axis=1)
                 )
                 level_col_idx.append(all_idxs)
             else :
                 hp = np.random.normal(size=len(cidxs))
-                all_projs_level = np.dot(denS[:, cidxs], hp)
+                all_projs_level = np.dot(HD_S[:, cidxs], hp)
                 level_rnd_vals.append(hp)
                 level_col_idx.append(cidxs)
 
@@ -115,7 +124,7 @@ def build_sparse_rptree(S, hparams, log=False) :
     common_dict = {
         'tree' : root,
         'pad' : pad_vec,
-        'diag_sign' : diag_sign,
+        'D' : D,
         'ncols' : ncols,
         'new_ncols' : new_ncols,
         'sq_new_ncols' : np.sqrt(float(new_ncols)),
@@ -134,8 +143,8 @@ def traverse_sparse_rptree(tree, log=False) :
     logr = lambda message : rplog(message, log)
     nodes = deque()
     nodes.append(tree['tree'])
-    diag_sign = np.transpose(tree['diag_sign'])
-    print('Diagonal sign matrix:', diag_sign)
+    D = np.transpose(tree['D'])
+    print('Diagonal sign matrix:', D)
 
     print('New column length:', tree['new_ncols'])
 
@@ -165,26 +174,6 @@ def traverse_sparse_rptree(tree, log=False) :
         )
 # -- end function
 
-def get_densified_query(tree, q) :
-    ncols = tree['ncols']
-    new_ncols = tree['new_ncols']
-
-    # D x
-    ds_q = np.multiply(q, tree['diag_sign'])
-
-    # [ Dx 0 ... 0 ]
-    densified_q = np.concatenate([ ds_q, tree['pad'] ])
-
-    # H [ Dx 0 ... 0 ]
-    fht(densified_q)
-
-    # (d^{-1/2}) * H [ Dx 0 ... 0 ]
-    densified_q /= tree['sq_new_ncols']
-
-
-    return densified_q
-# -- end function
-
 def search_tree(root, qprojs) :
     n = root
     while not n.leaf :
@@ -196,18 +185,18 @@ def search_tree(root, qprojs) :
 # -- end function
 
 def search_signed_sparse_rptree(tree, q) :
-    densified_q = get_densified_query(tree, q)
+    HDq = HD_x(tree['D'], tree['pad'], tree['sq_new_ncols'] , q)
     qprojs = [
-        compute_proj(densified_q, col_idxs)
+        compute_proj(HDq, col_idxs)
         for col_idxs in tree['level_col_idx']
     ]
     return search_tree(tree['tree'], qprojs)
 # -- end function
 
 def search_normal_sparse_rptree(tree, q) :
-    densified_q = get_densified_query(tree, q)
+    HDq = HD_x(tree['D'], tree['pad'], tree['sq_new_ncols'] , q)
     qprojs = [
-        np.dot(densified_q[cidxs], hp)
+        np.dot(HDq[cidxs], hp)
         for cidxs, hp in zip(tree['level_col_idx'], tree['level_rnd_vals'])
     ]
     return search_tree(tree['tree'], qprojs)
