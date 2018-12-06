@@ -7,20 +7,18 @@ from rptree import split_node
 
 from ffht import fht
 
-def rperm(P, x, length) :
-    Px = np.zeros(length)
-    for i in range(length) :
-        Px[P[i]] = x[i]
-    return Px
+def rperm(P_seed, x) :
+    np.random.seed(P_seed)
+    return np.random.permutation(x)
 # -- end function
 
-def HGPHD_x(D, pad, P, G, new_ncols, x) :
+def HGPHD_x(D, pad, P_seed, G, new_ncols, x) :
     # HDx
     HDx = np.concatenate([ x * D, pad ])
     fht(HDx)
 
     # GPHDx
-    HGPHDx = G * rperm(P, HDx, new_ncols)
+    HGPHDx = G * rperm(P_seed, HDx)
 
     # HGPHDx
     fht(HGPHDx)
@@ -50,12 +48,12 @@ def build_ff_kdtree(S, hparams, log=False) :
     pad_vec = np.zeros(new_ncols - ncols)
 
     # Generate a random permutation matrix P
-    P = np.random.permutation(range(new_ncols))
+    P_seed = np.random.randint(9999)
     # Generate a random diagonal gaussian matrix G
     G = np.random.normal(size=new_ncols)
 
     HGPHD_S = np.array([
-        HGPHD_x(D, pad_vec, P, G, new_ncols, p)
+        HGPHD_x(D, pad_vec, P_seed, G, new_ncols, p)
         for p in S
     ])
     
@@ -99,7 +97,7 @@ def build_ff_kdtree(S, hparams, log=False) :
         'new_ncols' : new_ncols,
         'D' : D,
         'pad' : pad_vec,
-        'P' : P,
+        'P_seed' : P_seed,
         'G' : G
     }
 # -- end function
@@ -110,7 +108,7 @@ def traverse_ff_kdtree(tree, log=False) :
     nodes.append(tree['tree'])
     print('D:', tree['D'])
     print('G:', tree['G'])
-    print('P:', tree['P'])
+    print('P_seed:', tree['P_seed'])
     ncols = tree['ncols']
     new_ncols = tree['new_ncols']
 
@@ -137,7 +135,7 @@ def search_ff_kdtree(tree, q) :
     n = tree['tree']
     new_ncols = tree['new_ncols']
     qprojs = HGPHD_x(
-        tree['D'], tree['pad'], tree['P'], tree['G'], new_ncols, q
+        tree['D'], tree['pad'], tree['P_seed'], tree['G'], new_ncols, q
     )
     while not n.leaf :
         if qprojs[n.level % new_ncols] < n.val :
