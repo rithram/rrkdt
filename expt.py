@@ -68,9 +68,7 @@ def main() :
 
     cmd_args = setup_cmd_args()
 
-    print(cmd_args.data_type)
     assert cmd_args.data_type == 'csv' or cmd_args.data_type == 'hdf5'
-    
     if cmd_args.data_type == 'csv' :
         assert (
             cmd_args.split_fraction > 0.0
