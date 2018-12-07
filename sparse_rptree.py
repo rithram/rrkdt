@@ -8,12 +8,10 @@ from rptree import Node
 from rptree import split_node
 
 def HD_x(D, pad, sqrt_new_ncols, x) :
-    # [ Dx 0 ... 0 ]
-    HDx = np.concatenate([ D * x, pad ])
-    # H [ Dx 0 ... 0 ]
-    fht(HDx)
+    # (d^{-1/2}) * [ Dx 0 ... 0 ]
+    HDx = np.concatenate([ D * x / sqrt_new_ncols, pad ])
     # (d^{-1/2}) * H [ Dx 0 ... 0 ]
-    HDx /= sqrt_new_ncols
+    fht(HDx)
 
     return HDx
 # -- end function

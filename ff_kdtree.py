@@ -13,16 +13,13 @@ def rperm(P_seed, x) :
 # -- end function
 
 def HGPHD_x(D, pad, P_seed, G, new_ncols, x) :
-    # HDx
-    HDx = np.concatenate([ x * D, pad ])
+    # (1/d) * HDx
+    HDx = np.concatenate([ x * D / float(new_ncols), pad ])
     fht(HDx)
-
-    # GPHDx
+    # (1/d) * GPHDx
     HGPHDx = G * rperm(P_seed, HDx)
-
-    # HGPHDx
+    # (1/d) * HGPHDx
     fht(HGPHDx)
-    HGPHDx /= float(new_ncols)
 
     return HGPHDx
 # -- end function
