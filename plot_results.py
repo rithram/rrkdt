@@ -1,3 +1,7 @@
+import argparse
+import pandas as pd
+import sys
+
 from matplotlib import pyplot as plt
 
 def generate_figures(all_results, all_auprcs, figfile) :
@@ -71,4 +75,31 @@ def generate_figures(all_results, all_auprcs, figfile) :
     plt.tight_layout()
     print('Plots generated, saving figures in \'%s\'' % figfile)
     plt.savefig(fname=figfile, format='png')    
+# -- end function
+
+
+def main() :
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-r', '--results_file', help='File containing the PR-curve', type=str
+    )
+    parser.add_argument(
+        '-a', '--auprc_results_file', help='File containing the AUPRC', type=str
+    )
+    parser.add_argument(
+        '-g',
+        '--figures_file',
+        help='File where the figures will be output for this experiment',
+        type=str
+    )
+    args = parser.parse_args()
+
+    results_df = pd.read_csv(args.results_file)
+    auprc_df = pd.read_csv(args.auprc_results_file)
+
+    generate_figures(results_df, auprc_df, args.figures_file)
+
+if __name__ == '__main__' :
+    status = main()
+    sys.exit(status)
 # -- end function
