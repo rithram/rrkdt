@@ -15,52 +15,55 @@ from nnsearch_utils import evaluate_setting
 from plot_results import generate_figures as genfigs
 
 def setup_cmd_args() :
-  parser = argparse.ArgumentParser()
-  parser.add_argument('-d', '--data', help='File containing data', type=str)
-  parser.add_argument(
-      '-t',
-      '--data_type',
-      help='Data file type -- should be one of \'csv\' or \'hdf5\'',
-      type=str
-  )
-  parser.add_argument(
-      '-f',
-      '--split_fraction',
-      help='Reference/query split fraction of csv data',
-      type=float,
-      default=0.1
-  )
-  parser.add_argument(
-      '-k', '--n_neighbors', help = 'Number of neighbors', type=int, default=10
-  )
-  parser.add_argument(
-      '-r', '--results_file',
-      help='File where the results would be output in csv format',
-      type=str
-  )
-  parser.add_argument(
-      '-g',
-      '--figures_file',
-      help='File where the figures will be output for this experiment',
-      type=str,
-      default=''
-  )
-  parser.add_argument(
-      '-N', '--leaf_size', help='The minimum leaf size in the tree', type=int
-  )
-  parser.add_argument(
-      '-T', '--num_trees', help='The number of trees', type=int
-  )
-  parser.add_argument(
-      '-R',
-      '--n_reps',
-      help='The number of times to evaluate a setting.',
-      type=int,
-      default=1
-  )
-
-  args = parser.parse_args()
-  return args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--data', help='File containing data', type=str)
+    parser.add_argument(
+        '-t',
+        '--data_type',
+        help='Data file type -- should be one of \'csv\' or \'hdf5\'',
+        type=str
+    )
+    parser.add_argument(
+        '-f',
+        '--split_fraction',
+        help='Reference/query split fraction of csv data',
+        type=float,
+        default=0.1
+    )
+    parser.add_argument(
+        '-k', '--n_neighbors', help = 'Number of neighbors', type=int, default=10
+    )
+    parser.add_argument(
+        '-M', '--method', help='Method to evaluate', type=str, default='all'
+    )
+    parser.add_argument(
+        '-r', '--results_file',
+        help='File where the results would be output in csv format',
+        type=str
+    )
+    parser.add_argument(
+        '-g',
+        '--figures_file',
+        help='File where the figures will be output for this experiment',
+        type=str,
+        default=''
+    )
+    parser.add_argument(
+        '-N', '--leaf_size', help='The minimum leaf size in the tree', type=int
+    )
+    parser.add_argument(
+        '-T', '--num_trees', help='The number of trees', type=int
+    )
+    parser.add_argument(
+        '-R',
+        '--n_reps',
+        help='The number of times to evaluate a setting.',
+        type=int,
+        default=1
+    )
+  
+    args = parser.parse_args()
+    return args
 # -- end function
 
 
@@ -83,6 +86,17 @@ def main() :
     assert cmd_args.num_trees > 0
     assert cmd_args.n_reps > 0
 
+    methods_list = [
+        'all', 'RPTree',
+        'SpGa:RPT(1/10)', 'SpGa:RPT(1/3)',
+        'SpRa:RPT(1/10)', 'SpRa:RPT(1/3)',
+        'RR:KDTree', 'RC:KDTree', 'FF:KDTree'
+    ]
+    assert cmd_args.method in methods_list, (
+        'Invalid method %s specified, must be one of \n%s'
+        % (cmd_args.method, str(methods_list))
+    )
+    
     assert cmd_args.results_file is not '', (
         'Please specify a results file via \'-r\' '
         'or \'--results_file\' to store results'
@@ -122,6 +136,10 @@ def main() :
     all_method_auprc['auprc'] = []
     all_method_auprc['auprc_std'] = []
     for method in all_methods :
+        if not cmd_args.method == 'all' and not method['name'] == cmd_args.method :
+            print('Skipping %s since %s selected' % (method['name'], cmd_args.method))
+            continue
+        
         print('Processing %s ...' % method['name'])
         _, result_dfs, auprc_list = evaluate_setting(
             S=references,
@@ -146,7 +164,10 @@ def main() :
         all_method_results.append(agg_df)
         
         # Computing the average AUPRC
-        print('AUPRC for %s: %g' % (method['name'], np.mean(auprc_list)))
+        print(
+            'AUPRC for %s: %g %s'
+            % (method['name'], np.mean(auprc_list), str(auprc_list))
+        )
         all_method_auprc['method'].append(method['name'])
         all_method_auprc['auprc'].append(np.mean(auprc_list))
         auprc_std = np.std(auprc_list) if len(auprc_list) > 1 else 0.0
