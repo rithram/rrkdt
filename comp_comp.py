@@ -43,14 +43,15 @@ def CCx(dim, reps) :
 # -- end function
 
 def HDx(dim, reps) :
-    D = np.random.binomial(n=1, p=0.5, size=dim) * 2 - 1
+    D = np.random.binomial(n=1, p=0.5, size=dim).astype(float) * 2.0 - 1.0
     pad_vec = np.array([])
     scale_factor = 1.0
+    D /= scale_factor
     t = 0
     for i in range(reps) :
         x = np.random.normal(size=dim)
         start = timeit.default_timer()
-        x1 = HD_x(D, pad_vec, scale_factor, x)
+        x1 = HD_x(D, pad_vec, x)
         stop = timeit.default_timer()
         t += (stop - start)
     return t

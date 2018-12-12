@@ -7,9 +7,9 @@ from rptree import rplog
 from rptree import Node
 from rptree import split_node
 
-def HD_x(D, pad, sqrt_new_ncols, x) :
+def HD_x(D_by_sqrt_d, pad, x) :
     # (d^{-1/2}) * [ Dx 0 ... 0 ]
-    HDx = np.concatenate([ D * x / sqrt_new_ncols, pad ])
+    HDx = np.concatenate([ D_by_sqrt_d * x, pad ])
     # (d^{-1/2}) * H [ Dx 0 ... 0 ]
     fht(HDx)
 
@@ -36,7 +36,7 @@ def build_sparse_rptree(S, hparams, log=False) :
     )
 
     # Generate a random diagonal sign matrix
-    D = np.random.binomial(n=1, p=0.5, size=ncols) * 2 - 1
+    D = np.random.binomial(n=1, p=0.5, size=ncols).astype(float) * 2.0 - 1.0
 
     # Pad each point to have some power of 2 size
     lncols = np.log2(ncols)
@@ -44,12 +44,18 @@ def build_sparse_rptree(S, hparams, log=False) :
     logr('Padding %i features to %i with 0' % (ncols, new_ncols))
     pad_vec = np.zeros(new_ncols - ncols)
 
+    # Caching the 1/sqrt(d) operation inside the D sign vector
+    D_by_sqrt_d = D / np.sqrt(float(new_ncols))
+
     HD_S = np.array([
-        HD_x(D, pad_vec, np.sqrt(new_ncols), p) for p in S
+        HD_x(D_by_sqrt_d, pad_vec, p) for p in S
     ])
     
     a, b = HD_S.shape
-    assert a == nrows and b == new_ncols
+    assert a == nrows and b == new_ncols, (
+        'a = %i, nrows = %i, b = %i, new_ncols = %i, ncols = %i'
+        % (a, nrows, b, new_ncols, ncols)
+    )
 
     logr('Densified data matrix has shape %s previously %s'
          % (repr(HD_S.shape), repr(S.shape))
@@ -122,10 +128,8 @@ def build_sparse_rptree(S, hparams, log=False) :
     common_dict = {
         'tree' : root,
         'pad' : pad_vec,
-        'D' : D,
-        'ncols' : ncols,
+        'D_by_sqrt_d' : D_by_sqrt_d,
         'new_ncols' : new_ncols,
-        'sq_new_ncols' : np.sqrt(float(new_ncols)),
         'level_col_idx' : level_col_idx
     }
 
@@ -141,8 +145,8 @@ def traverse_sparse_rptree(tree, log=False) :
     logr = lambda message : rplog(message, log)
     nodes = deque()
     nodes.append(tree['tree'])
-    D = np.transpose(tree['D'])
-    print('Diagonal sign matrix:', D)
+    D_by_sqrt_d = np.transpose(tree['D_by_sqrt_d'])
+    print('Diagonal sign matrix / sqrt(d):', D_by_sqrt_d)
 
     print('New column length:', tree['new_ncols'])
 
@@ -183,7 +187,7 @@ def search_tree(root, qprojs) :
 # -- end function
 
 def search_signed_sparse_rptree(tree, q) :
-    HDq = HD_x(tree['D'], tree['pad'], tree['sq_new_ncols'] , q)
+    HDq = HD_x(tree['D_by_sqrt_d'], tree['pad'], q)
     qprojs = [
         compute_proj(HDq, col_idxs)
         for col_idxs in tree['level_col_idx']
@@ -192,7 +196,7 @@ def search_signed_sparse_rptree(tree, q) :
 # -- end function
 
 def search_normal_sparse_rptree(tree, q) :
-    HDq = HD_x(tree['D'], tree['pad'], tree['sq_new_ncols'] , q)
+    HDq = HD_x(tree['D_by_sqrt_d'], tree['pad'], q)
     qprojs = [
         np.dot(HDq[cidxs], hp)
         for cidxs, hp in zip(tree['level_col_idx'], tree['level_rnd_vals'])
