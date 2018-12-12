@@ -12,9 +12,9 @@ def rperm(P_seed, x) :
     return np.random.permutation(x)
 # -- end function
 
-def HGPHD_x(D, pad, P_seed, G, new_ncols, x) :
+def HGPHD_x(D_by_sqrt_d, pad, P_seed, G, x) :
     # (1/d) * HDx
-    HDx = np.concatenate([ x * D / float(new_ncols), pad ])
+    HDx = np.concatenate([ x * D_by_sqrt_d, pad ])
     fht(HDx)
     # (1/d) * GPHDx
     HGPHDx = G * rperm(P_seed, HDx)
@@ -36,7 +36,7 @@ def build_ff_kdtree(S, hparams, log=False) :
     )
 
     # Generate a random diagonal sign matrix D
-    D = np.random.binomial(n=1, p=0.5, size=ncols) * 2 - 1
+    D = np.random.binomial(n=1, p=0.5, size=ncols).astype(float) * 2.0 - 1.0
 
     # Pad each point to have some power of 2 size
     lncols = np.log2(ncols)
@@ -44,13 +44,16 @@ def build_ff_kdtree(S, hparams, log=False) :
     logr('Padding %i features to %i with 0' % (ncols, new_ncols))
     pad_vec = np.zeros(new_ncols - ncols)
 
+    # Cache the (1/d) operation inside the D sign vector
+    D_by_sqrt_d = D / float(new_ncols)
+    
     # Generate a random permutation matrix P
     P_seed = np.random.randint(9999)
     # Generate a random diagonal gaussian matrix G
     G = np.random.normal(size=new_ncols)
 
     HGPHD_S = np.array([
-        HGPHD_x(D, pad_vec, P_seed, G, new_ncols, p)
+        HGPHD_x(D_by_sqrt_d, pad_vec, P_seed, G, p)
         for p in S
     ])
     
@@ -92,7 +95,7 @@ def build_ff_kdtree(S, hparams, log=False) :
         'tree' : root,
         'ncols' : ncols,
         'new_ncols' : new_ncols,
-        'D' : D,
+        'D_by_sqrt_d' : D_by_sqrt_d,
         'pad' : pad_vec,
         'P_seed' : P_seed,
         'G' : G
@@ -132,7 +135,7 @@ def search_ff_kdtree(tree, q) :
     n = tree['tree']
     new_ncols = tree['new_ncols']
     qprojs = HGPHD_x(
-        tree['D'], tree['pad'], tree['P_seed'], tree['G'], new_ncols, q
+        tree['D_by_sqrt_d'], tree['pad'], tree['P_seed'], tree['G'], q
     )
     while not n.leaf :
         if qprojs[n.level % new_ncols] < n.val :
