@@ -34,7 +34,11 @@ def setup_cmd_args() :
         '-k', '--n_neighbors', help = 'Number of neighbors', type=int, default=10
     )
     parser.add_argument(
-        '-M', '--method', help='Method to evaluate', type=str, default='all'
+        '-M',
+        '--methods',
+        help='Comma-separated method(s) to evaluate',
+        type=str,
+        default='all'
     )
     parser.add_argument(
         '-r', '--results_file',
@@ -87,15 +91,21 @@ def main() :
     assert cmd_args.n_reps > 0
 
     methods_list = [
-        'all', 'RPTree',
+        'RPTree',
         'SpGa:RPT(1/10)', 'SpGa:RPT(1/3)',
         'SpRa:RPT(1/10)', 'SpRa:RPT(1/3)',
         'RR:KDTree', 'RC:KDTree', 'FF:KDTree'
     ]
-    assert cmd_args.method in methods_list, (
-        'Invalid method %s specified, must be one of \n%s'
-        % (cmd_args.method, str(methods_list))
-    )
+
+    methods_input = 'all' if cmd_args.methods is 'all' else []
+    if cmd_args.methods is not 'all' :
+        mlist = cmd_args.methods.split(',')
+        for m in mlist :
+            assert m in methods_list, (
+                'Invalid method %s specified, must be one of \n%s'
+                % (m, str(methods_list))
+            )
+            methods_input.append(m)
     
     assert cmd_args.results_file is not '', (
         'Please specify a results file via \'-r\' '
@@ -136,8 +146,8 @@ def main() :
     all_method_auprc['auprc'] = []
     all_method_auprc['auprc_std'] = []
     for method in all_methods :
-        if not cmd_args.method == 'all' and not method['name'] == cmd_args.method :
-            print('Skipping %s since %s selected' % (method['name'], cmd_args.method))
+        if not cmd_args.methods == 'all' and not method['name'] in methods_input :
+            print('Skipping %s since %s selected' % (method['name'], str(methods_input)))
             continue
         
         print('Processing %s ...' % method['name'])
@@ -172,7 +182,7 @@ def main() :
         all_method_auprc['auprc'].append(np.mean(auprc_list))
         auprc_std = np.std(auprc_list) if len(auprc_list) > 1 else 0.0
         all_method_auprc['auprc_std'].append(auprc_std)
-        
+
     # 3. concatenate all results
     all_results = pd.concat(all_method_results)
     all_auprcs = pd.DataFrame.from_dict(all_method_auprc)
