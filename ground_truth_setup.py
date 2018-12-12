@@ -48,14 +48,16 @@ def preprocess_hdf5(filename, k=10) :
     )
 
     # Get the references and queries
-    R = np.array(data_f['train'])
+    R = np.array(data_f['train']).astype(float)
     print('References (%i x %i)' % (R.shape[0], R.shape[1]))
 
-    Q = np.array(data_f['test'])
+    Q = np.array(data_f['test']).astype(float)
     print('Queries (%i x %i)' % (Q.shape[0], Q.shape[1]))
 
     # Extract the neighbors
     true_nns = np.array(data_f['neighbors'])[:,0:k]
+
+    data_f.close()
 
     return R, Q, true_nns
 # -- end function
