@@ -10,6 +10,7 @@ import numpy as np
 import sys
 import timeit
 from matplotlib import pyplot as plt
+from ffht import fht
 
 from sparse_rptree import HD_x
 from rnd_rot_kdtree import CC_x
@@ -28,6 +29,50 @@ def matmul(dim, reps) :
     return t
 # -- end function
 
+def FFTx(dim, reps) :
+    t = 0
+    for i in range(reps) :
+        x = np.random.normal(size=dim)
+        start = timeit.default_timer()
+        d = np.fft.fft(x)
+        stop = timeit.default_timer()
+        t += (stop - start)
+    return t
+# -- end function
+
+def rFFTx(dim, reps) :
+    t = 0
+    for i in range(reps) :
+        x = np.random.normal(size=dim)
+        start = timeit.default_timer()
+        d = np.fft.rfft(x)
+        stop = timeit.default_timer()
+        t += (stop - start)
+    return t
+# -- end function
+
+def IFFTFFTx(dim, reps) :
+    t = 0
+    for i in range(reps) :
+        x = np.random.normal(size=dim)
+        start = timeit.default_timer()
+        d = np.fft.ifft(np.fft.fft(x))
+        stop = timeit.default_timer()
+        t += (stop - start)
+    return t
+# -- end function
+
+def rIFFTFFTx(dim, reps) :
+    t = 0
+    for i in range(reps) :
+        x = np.random.normal(size=dim)
+        start = timeit.default_timer()
+        d = np.fft.irfft(np.fft.rfft(x), dim)
+        stop = timeit.default_timer()
+        t += (stop - start)
+    return t
+# -- end function
+
 def CCx(dim, reps) :
     y = np.random.normal(size=dim)
     fft_y = np.fft.fft(y)
@@ -37,6 +82,17 @@ def CCx(dim, reps) :
         x = np.random.normal(size=dim)
         start = timeit.default_timer()
         d = CC_x(D, fft_y, x)
+        stop = timeit.default_timer()
+        t += (stop - start)
+    return t
+# -- end function
+
+def Hx(dim, reps) :
+    t = 0
+    for i in range(reps) :
+        x = np.random.normal(size=dim)
+        start = timeit.default_timer()
+        d = fht(x)
         stop = timeit.default_timer()
         t += (stop - start)
     return t
@@ -62,11 +118,12 @@ def FFx(dim, reps) :
     G = np.random.normal(size=dim)
     P_seed = np.random.randint(9999)
     pad_vec = np.array([])
+    D_by_d = D.astype(float) / float(dim)
     t = 0
     for i in range(reps) :
         x = np.random.normal(size=dim)
         start = timeit.default_timer()
-        x1 = HGPHD_x(D, pad_vec, P_seed, G, dim, x)
+        x1 = HGPHD_x(D_by_d, pad_vec, P_seed, G, x)
         stop = timeit.default_timer()
         t += (stop - start)
     return t
@@ -89,9 +146,10 @@ def plot_figures(results, fname, reps, tlog=False) :
         'tab:purple',
         'tab:brown',
         'tab:pink',
-        'tab:gray'
+        'tab:gray',
+        'tab:olive'
     ]
-    my_markers = 'o^sxdp'
+    my_markers = 'o^sxdpv123'
 
     color_dict = {}
     marker_dict = {}
@@ -144,16 +202,26 @@ def compare_computations() :
     results = {
         'dims' : [ 16, 32, 64, 128, 256, 512, 1024 ],
         'MatMul' : [],
-        'CC_x' : [],
-        'HD_x' : [],
-        'FF_x' : []
+        'FFTx' : [],
+        'IFFTFFTx' : [],
+        'rFFTx' : [],
+        'rIFFTFFTx' : [],
+        'CCx' : [],
+        'Hx' : [],
+        'HDx' : [],
+        'FFx' : []
     }
 
     func_list = [
         ( matmul, 'MatMul' ),
-        ( CCx, 'CC_x' ),
-        ( HDx, 'HD_x' ),
-        ( FFx, 'FF_x' )
+        ( FFTx, 'FFTx' ),
+        ( IFFTFFTx, 'IFFTFFTx' ),
+        ( rFFTx, 'rFFTx' ),
+        ( rIFFTFFTx, 'rIFFTFFTx' ),
+        ( CCx, 'CCx' ),
+        ( Hx, 'Hx' ),
+        ( HDx, 'HDx' ),
+        ( FFx, 'FFx' )
     ]
     
     nreps = args.reps
