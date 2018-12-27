@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 def generate_figures(all_results, all_auprcs, figfile) :
     my_colors = [
         'tab:blue',
+        'tab:olive',
         'tab:orange',
         'tab:green',
         'tab:red',
@@ -15,7 +16,7 @@ def generate_figures(all_results, all_auprcs, figfile) :
         'tab:pink',
         'tab:gray'
     ]
-    my_markers = 'o^s+*xdp'
+    my_markers = 'ov^s+*xdp'
     color_dict = {}
     marker_dict = {}
     for method, col, mrk in zip(all_auprcs['method'], my_colors, my_markers) :

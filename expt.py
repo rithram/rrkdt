@@ -90,12 +90,13 @@ def main() :
     assert cmd_args.num_trees > 0
     assert cmd_args.n_reps > 0
 
-    methods_list = [
-        'RPTree',
-        'SpGa:RPT(1/10)', 'SpGa:RPT(1/3)',
-        'SpRa:RPT(1/10)', 'SpRa:RPT(1/3)',
-        'RR:KDTree', 'RC:KDTree', 'FF:KDTree'
-    ]
+    # 1. get all methods
+    all_methods = get_methods_for_expt(
+        leaf_size=cmd_args.leaf_size, ntrees=cmd_args.num_trees
+    )
+    assert isinstance(all_methods, list)
+
+    methods_list = [ method['name'] for method in all_methods ]
 
     methods_input = 'all' if cmd_args.methods is 'all' else []
     if cmd_args.methods is not 'all' :
@@ -133,11 +134,6 @@ def main() :
     #   b. Plot AUPRC for each method (bar plots)
     #   c. #queries/second curve for each method (line plots)
 
-    # 1. get all methods
-    all_methods = get_methods_for_expt(
-        leaf_size=cmd_args.leaf_size, ntrees=cmd_args.num_trees
-    )
-    assert isinstance(all_methods, list)
 
     # 2. run experiment for each method
     all_method_results = []

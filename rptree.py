@@ -151,3 +151,15 @@ def search_rptree(tree, q) :
             n = n.rchild
     return n.pidxs
 # -- end function
+
+def search_rptree0(tree, q) :
+    n = tree['tree']
+    #qprojs = [ np.dot(q, proj) for proj in tree['projs'] ]
+    while not n.leaf :
+        qproj = np.dot(q, tree['projs'][:, n.level])
+        if qproj < n.val :
+            n = n.lchild
+        else :
+            n = n.rchild
+    return n.pidxs
+# -- end function
