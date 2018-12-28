@@ -17,7 +17,7 @@ def get_methods_for_expt(leaf_size, ntrees) :
     rp_hparam.leaf_size = leaf_size
     rp_hparam.ntrees = ntrees
     rpt_method = {
-        'name' : 'RPTree',
+        'name' : 'RPTree+',
         'hparams' : rp_hparam,
         'indexer' : build_rptree,
         'locater' : search_rptree
@@ -25,11 +25,8 @@ def get_methods_for_expt(leaf_size, ntrees) :
     methods.append(rpt_method)
 
     # plain rptree (not optimized search)
-    rp0_hparam = HParams()
-    rp0_hparam.leaf_size = leaf_size
-    rp0_hparam.ntrees = ntrees
     rpt0_method = {
-        'name' : 'RPTree0',
+        'name' : 'RPTree',
         'hparams' : rp_hparam,
         'indexer' : build_rptree,
         'locater' : search_rptree0
