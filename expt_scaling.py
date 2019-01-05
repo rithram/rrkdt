@@ -123,6 +123,16 @@ def main() :
         % (ncols, queries.shape[1])
     )
 
+    ncols2 = 2
+    while ncols2 * 2 <= ncols :
+        ncols2 *= 2
+    print('Performing experiment on %i columns' % ncols2)
+    references = references[:, :ncols2]
+    queries = queries[:, :ncols2]
+    ncols = ncols2
+    print 'S: ', references.shape
+    print 'Q: ', queries.shape
+
     # 2. Choose values for nrows scaling
     # 3. For each nrows, create nreps seeds for subsampling reference set
     # 4. For each nrows
