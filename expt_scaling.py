@@ -152,6 +152,7 @@ def main() :
     while n < nrows :
         n_list.append(n)
         n *= 2
+    n_list.append(nrows)
     print('Trying the following value of n for scaling:\n%s' % repr(n_list))
 
     # 3. For each nrows, create nreps permutations for subsampling reference set
