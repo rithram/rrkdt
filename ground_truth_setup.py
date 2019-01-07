@@ -41,11 +41,12 @@ def preprocess_csv(
 def preprocess_hdf5(filename, k=10) :
     data_f = h5py.File(filename)
 
-    nqueries, knn_available = data_f['neighbors'].shape
-    assert k <= knn_available, (
-        '%i NN available, %i NN requested ...'
-        % (knn_available, k)
-    )
+    if k > 0 :
+        nqueries, knn_available = data_f['neighbors'].shape
+        assert k <= knn_available, (
+            '%i NN available, %i NN requested ...'
+            % (knn_available, k)
+        )
 
     # Get the references and queries
     R = np.array(data_f['train']).astype(float)
@@ -55,7 +56,7 @@ def preprocess_hdf5(filename, k=10) :
     print('Queries (%i x %i)' % (Q.shape[0], Q.shape[1]))
 
     # Extract the neighbors
-    true_nns = np.array(data_f['neighbors'])[:,0:k]
+    true_nns = None if k == 0 else np.array(data_f['neighbors'])[:,0:k]
 
     data_f.close()
 
@@ -142,3 +143,4 @@ def csv2hdf5_cmdline() :
 if __name__ == '__main__' :
     status = csv2hdf5_cmdline()
     sys.exit(status)
+# -- end function

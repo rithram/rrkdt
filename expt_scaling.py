@@ -116,7 +116,7 @@ def main() :
     
     # Read in the data, set up references and queries
     # (no need for true neighbors here)
-    references, queries, _ = preprocess_hdf5(cmd_args.data, k=1)
+    references, queries, _ = preprocess_hdf5(cmd_args.data, k=0)
     nrows, ncols = references.shape
     assert ncols == queries.shape[1], (
         'References have %i columns, queries have %i'
