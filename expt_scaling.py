@@ -46,6 +46,9 @@ def setup_cmd_args() :
         type=int,
         default=1
     )
+    parser.add_argument(
+        '-n', '--n_queries', help='Number of queries', type=int, default=10000
+    )
   
     args = parser.parse_args()
     return args
@@ -70,7 +73,7 @@ def compute_indexing_time(S, indexer, hp) :
 
 def compute_query_time(tree, locater, Q) :
     start = default_timer()
-    _ = [ locater(tree, q) for q in Q ]
+    xx = [ locater(tree, q) for q in Q ]
     query_time = default_timer() - start
 
     return query_time
@@ -85,11 +88,23 @@ def compute_scaling_statistics(S, Q, indexer, hp, locater) :
 # -- end function
 
 
+def prep_queries(Q, nrows, ncols) :
+    n, d = Q.shape
+    assert d >= ncols
+    ret = np.copy(Q)
+    while n < nrows :
+        ret = np.vstack((ret, Q))
+        n, _ = ret.shape
+    
+    return ret[:nrows, :ncols]
+# -- end function
+
 def main() :
 
     cmd_args = setup_cmd_args()
     assert cmd_args.leaf_size > 0
     assert cmd_args.n_reps > 0
+    assert cmd_args.n_queries > 0
 
     # 1. get all methods
     all_methods = get_methods_for_expt(
@@ -123,15 +138,19 @@ def main() :
         % (ncols, queries.shape[1])
     )
 
+    # Pick number of columns
     ncols2 = 2
     while ncols2 * 2 <= ncols :
         ncols2 *= 2
     print('Performing experiment on %i columns' % ncols2)
     references = references[:, :ncols2]
-    queries = queries[:, :ncols2]
-    ncols = ncols2
     print 'S: ', references.shape
+
+    # process queries
+    queries = prep_queries(queries, cmd_args.n_queries, ncols2)
     print 'Q: ', queries.shape
+
+    ncols = ncols2
 
     # 2. Choose values for nrows scaling
     # 3. For each nrows, create nreps seeds for subsampling reference set
