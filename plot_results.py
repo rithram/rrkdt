@@ -4,7 +4,22 @@ import sys
 
 from matplotlib import pyplot as plt
 
+SMALL_SIZE = 10
+MEDIUM_SIZE = 16
+BIGGER_SIZE = 16
+
+#plt.rc('font', size=BIGGER_SIZE)         # controls default text sizes
+plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+#plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+
+
 def generate_figures(all_results, all_auprcs, figfile) :
+
     my_colors = [
         'tab:blue',
         'tab:olive',
@@ -34,12 +49,13 @@ def generate_figures(all_results, all_auprcs, figfile) :
             values['precision'],
             label=method,
             color=color_dict[method],
-            marker=marker_dict[method]
+            marker=marker_dict[method],
+            markersize=10
         )
-    plt.legend(loc='lower left', framealpha=0.5, fontsize=7)
+    plt.legend(loc='lower left', framealpha=0.1)
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.title('Recall vs. Precision')
+    plt.title('Recall vs. Precision', fontsize=BIGGER_SIZE)
 
     #   b. Plot AUPRC for each method (bar plots)
     plt.subplot(312)
@@ -50,13 +66,13 @@ def generate_figures(all_results, all_auprcs, figfile) :
         all_auprcs['auprc'],
         color=color_list,
         yerr=yerrs_list,
-        ecolor='gray',
-        capsize=5
+        ecolor='black',
+        capsize=7
     )
-    plt.xticks(rotation=20)
+    plt.xticks(rotation=30)
     plt.xlabel('Method')
     plt.ylabel('AUPRC')
-    plt.title('Area under Recall vs. Precision Curve')
+    plt.title('Area under Recall vs. Precision Curve', fontsize=BIGGER_SIZE)
 
     #   c. #queries/second curve for each method (line plots)
     plt.subplot(313)
@@ -66,12 +82,13 @@ def generate_figures(all_results, all_auprcs, figfile) :
             values['nqueries_per_sec'],
             label=method,
             color=color_dict[method],
-            marker=marker_dict[method]
+            marker=marker_dict[method],
+            markersize=10
         )
     plt.yscale('log')
     plt.xlabel('Recall')
     plt.ylabel('#queries/sec')
-    plt.title('Recall vs. Num. queries per second')
+    plt.title('Recall vs. Num. queries per second', fontsize=BIGGER_SIZE)
 
     plt.tight_layout()
     print('Plots generated, saving figures in \'%s\'' % figfile)
