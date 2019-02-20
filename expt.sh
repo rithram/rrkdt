@@ -26,7 +26,7 @@ for k in ${ks[@]}; do
         rfile="$prefix.results"
         ffile="$prefix.figures.png"
 
-        python2.7 expt.py \
+        python2.7 src/expt.py \
                   -d $data_file \
                   -t $data_type \
                   -f 0.1 \
