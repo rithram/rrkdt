@@ -200,7 +200,7 @@ def compare_computations() :
     args = parser.parse_args()
     
     results = {
-        'dims' : [ 16, 32, 64, 128, 256, 512, 1024 ],
+        'dims' : [ 16, 32, 64, 128, 256, 512, 1024, 2048 ],
         'MatMul' : [],
         'FFTx' : [],
         'IFFTFFTx' : [],
