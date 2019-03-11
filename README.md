@@ -48,5 +48,8 @@ pip install . --user
 If everything is installed successfully, you can test the working of the code as well as its correctness by executing the following from the root of the library:
 
 ```
+cd tests
+tar -xzvf USPS.tar.gz
+cd ..
 python2.7 tests/test_all_trees.py
 ```
