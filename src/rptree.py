@@ -163,3 +163,22 @@ def search_rptree0(tree, q) :
             n = n.rchild
     return n.pidxs
 # -- end function
+
+def mydot(q, w) :
+    proj = 0.
+    for x, y in zip(q, w) :
+        proj += (x * y)
+    return proj
+# -- end function
+
+def search_rptree00(tree, q) :
+    n = tree['tree']
+    while not n.leaf :
+        w = tree['projs'][:, n.level]
+        qproj = mydot(q, w)
+        if qproj < n.val :
+            n = n.lchild
+        else :
+            n = n.rchild
+    return n.pidxs
+# -- end function

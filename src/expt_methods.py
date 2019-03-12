@@ -1,4 +1,4 @@
-from rptree import build_rptree, search_rptree, search_rptree0
+from rptree import build_rptree, search_rptree, search_rptree0, search_rptree00
 from rnd_rot_kdtree import build_rr_kdtree, search_rr_kdtree
 from rnd_rot_kdtree import build_rconv_kdtree, search_rconv_kdtree
 from sparse_rptree import build_sparse_rptree, search_sparse_rptree
@@ -32,6 +32,15 @@ def get_methods_for_expt(leaf_size, ntrees) :
         'locater' : search_rptree0
     }
     methods.append(rpt0_method)
+
+    # plain rptree (deliberately unoptimized search)
+    rpt00_method = {
+        'name' : 'RPTree0',
+        'hparams' : rp_hparam,
+        'indexer' : build_rptree,
+        'locater' : search_rptree00
+    }
+    methods.append(rpt00_method)
 
 
     # sparse rptree with {Gaussian, Radamacher} distribution and p={1/3, 2/3}
