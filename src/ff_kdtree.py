@@ -6,6 +6,7 @@ from rptree import Node
 from rptree import split_node
 
 from ffht import fht
+from mat_utils import fwht
 
 def rperm(P_seed, x) :
     np.random.seed(P_seed)
@@ -20,6 +21,18 @@ def HGPHD_x(D_by_sqrt_d, pad, P_seed, G, x) :
     HGPHDx = G * rperm(P_seed, HDx)
     # (1/d) * HGPHDx
     fht(HGPHDx)
+
+    return HGPHDx
+# -- end function
+
+def H0GPH0D_x(D_by_sqrt_d, pad, P_seed, G, x) :
+    # (1/d) * HDx
+    HDx = np.concatenate([ x * D_by_sqrt_d, pad ])
+    fwht(HDx)
+    # (1/d) * GPHDx
+    HGPHDx = G * rperm(P_seed, HDx)
+    # (1/d) * HGPHDx
+    fwht(HGPHDx)
 
     return HGPHDx
 # -- end function
@@ -131,10 +144,11 @@ def traverse_ff_kdtree(tree, log=False) :
         )
 # -- end function
 
-def search_ff_kdtree(tree, q) :
+def search_ff_kdtree(tree, q, optimized=True) :
     n = tree['tree']
     new_ncols = tree['new_ncols']
-    qprojs = HGPHD_x(
+    FFx = HGPHD_x if optimized else H0GPH0D_x
+    qprojs = FFx(
         tree['D_by_sqrt_d'], tree['pad'], tree['P_seed'], tree['G'], q
     )
     while not n.leaf :

@@ -98,5 +98,15 @@ def get_methods_for_expt(leaf_size, ntrees) :
     }
     methods.append(ffkdt_method)
 
+    # FastFood data + k-d tree (basic fwht; not optimized)
+    search_ff0_kdtree = lambda tree, q : search_ff_kdtree(tree, q, optimized=False)
+    ff0kdt_method = {
+        'name' : 'FF0:KDTree',
+        'hparams' : ffkd_hparam,
+        'indexer' : build_ff_kdtree,
+        'locater' : search_ff0_kdtree
+    }
+    methods.append(ff0kdt_method)
+
     return methods
 # -- end function
