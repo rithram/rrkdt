@@ -100,7 +100,7 @@ def build_rptree(S, hparams, log=False) :
             # 1. Generate a random vector
             # 2. Project all points in the table along this random vector
             hp = np.random.normal(size=ncols)
-            all_projs_level = np.dot(S, hp)
+            all_projs_level = S @ hp
             hp_list.append(hp)
 
         nidx = split_node(
