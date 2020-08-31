@@ -1,6 +1,18 @@
 # RRKDT
 ## Nearest-neighbor search with $kd$-trees on randomly rotated data
 
+```
+@inproceedings{ram2019revisiting,
+  title={Revisiting kd-tree for nearest neighbor search},
+  author={Ram, Parikshit and Sinha, Kaushik},
+  booktitle={Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
+  pages={1378--1388},
+  year={2019}
+}
+```
+
+
+
 ### Installation requirements
 
 This code has been tested on Centos 7 (RHEL 7) and Ubuntu 18.04. The code is designed for `python2.7` because of the [Fast Fast Walsh-Hadamard Transform](https://github.com/FALCONN-LIB/FFHT) library we use for Fast Walsh-Hadamard Transform. We assume the presence of the following:
